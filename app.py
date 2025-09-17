@@ -506,7 +506,7 @@ render_navigation()
 @st.cache_resource
 def load_model():
     try:
-        return YOLO("yolov8n.pt")
+        return YOLO("best.pt")
     except Exception as e:
         st.error(f"❌ Không thể tải model YOLO: {str(e)}")
         return None
