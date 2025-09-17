@@ -7,6 +7,8 @@ import numpy as np
 import sqlite3
 import hashlib
 import os
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
+import av
 
 
 # ================= DATABASE SETUP =================
@@ -747,23 +749,32 @@ elif st.session_state.page == "demo":
                     annotated = results[0].plot()
                     stframe.image(annotated, channels="BGR", use_column_width=True)
                 cap.release()
+            elif st.session_state.page == "demo" and option == "📸 Webcam":
+                st.write("Bật camera realtime phát hiện vật thể 🎥")
 
-    elif option == "📸 Webcam":
-        st.write("🎥 Bật webcam realtime")
-        run = st.checkbox("▶️ Start Webcam")
-        FRAME_WINDOW = st.image([])
-        cap = cv2.VideoCapture(0)
-        while run:
-            ret, frame = cap.read()
-            if not ret:
-                st.error("❌ Không mở được camera")
-                break
-            results = model(frame)
-            annotated = results[0].plot()
-            FRAME_WINDOW.image(annotated, channels="BGR", use_column_width=True)
-        cap.release()
+                webrtc_streamer(
+                    key="yolo-demo",
+                    video_processor_factory=YOLOProcessor,
+                    media_stream_constraints={"video": True, "audio": False}
+                )
 
-    st.markdown('</div>', unsafe_allow_html=True)
+
+class YOLOProcessor(VideoProcessorBase):
+    def __init__(self):
+        self.model = model  # dùng model YOLO đã load ở trên
+
+    def recv(self, frame):
+        img = frame.to_ndarray(format="bgr24")
+
+        # Chạy YOLO
+        results = self.model(img)
+        annotated = results[0].plot()
+
+        # Trả lại frame sau khi detect
+        return av.VideoFrame.from_ndarray(annotated, format="bgr24")
+
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ================= FOOTER =================
 st.markdown("""
