@@ -1,7 +1,7 @@
-fastapi
-uvicorn
+streamlit
 ultralytics
-pillow
-opencv-python
-gdown
-python-multipart
+opencv-python-headless
+Pillow
+numpy
+pandas
+sqlalchemy
